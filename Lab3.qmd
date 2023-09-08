@@ -1,0 +1,111 @@
+---
+title: "Lab 3 OM 566"
+author: "Christine Raj"
+format: html
+editor: visual
+---
+
+## Libraries and Packages
+
+```{r}
+library(data.table)
+library(tidyverse)
+library(leaflet)
+library(lubridate)
+```
+
+## Download the data
+
+```{r}
+download.file(
+  "https://raw.githubusercontent.com/USCbiostats/data-science-data/master/02_met/met_all.gz",
+  destfile = file.path("~", "Downloads", "met_all.gz"),
+  method   = "libcurl",
+  timeout  = 60
+)
+
+met <- data.table::fread(file.path("~", "Downloads", "met_all.gz"))
+```
+
+## Checking Dimensions
+
+```{r}
+dim(met)
+head(met)
+tail(met)
+```
+
+## Looking at variables
+
+```{r}
+str(met)
+```
+
+## Key Variables
+
+```{r}
+table(met$year)
+table(met$day)
+table(met$hour)
+summary(met$temp)
+summary(met$elev)
+summary(met$wind.sp)
+met[met$elev==9999.0] <- NA
+summary(met$elev)
+met <- met[temp> -40]
+met2 <- met[order(temp)]
+head(met2)
+```
+
+The highest weather station is at 4113.
+
+## Checking against external sources
+
+```{r}
+met <- met[temp > -15]
+met2 <- met[order(temp)]
+head(met2)
+```
+
+## Calculating Summary Statistics
+
+```{r}
+elev <- met[elev==max(elev), ]
+summary(elev)
+cor(elev$temp, elev$wind.sp, use="complete")
+cor(elev$temp, elev$hour, use = "complete")
+cor(elev$wind.sp, elev$day, use = "complete")
+cor(elev$wind.sp, elev$hour, use = "complete")
+cor(elev$temp, elev$day, use = "complete")
+```
+
+## Exploratory Graphs
+
+```{r}
+hist(met$elev, breaks = 100)
+hist(met$temp)
+hist(met$wind.sp)
+met_stations <- unique(met[,c("lat", "lon")])
+dim(met_stations)
+leaflet(elev) %>% addProviderTiles('OpenStreetMap') %>% addCircles(lat=~lat, lng=~lon, opacity=1, fillOpacity = 1, radius = 100)
+elev$date <- with(elev, ymd_h(paste(year, month, day, hour, sep= ' ')))
+summary(elev$date)
+elev <- elev[order(date)]
+head(elev)
+plot(elev$date, elev$temp, type='l')
+plot(elev$date, elev$wind.sp, type='l')
+```
+
+The graphs show that in August the temperature at each elevation is fairly similar for highs and lows of each day. For wind speed there are around 2 weeks in the middle of august where wind speed became much higher than the first and last week.
+
+## Other Questions
+
+Is the wind direction similar at the same time each day?
+
+```{r}
+hist(met$wind.dir)
+elev$hour <- with(elev, ymd_h(paste(year, month, day, hour, sep= ' ')))
+summary(elev$hour)
+elev <- elev[order(hour)]
+plot(elev$hour, elev$wind.dir, type = 'l')
+```
