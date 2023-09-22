@@ -1,0 +1,157 @@
+---
+title: "Lab4"
+author: "Christine Raj"
+format: html
+editor: visual
+---
+
+## Downloading Data
+
+```{r}
+if (!file.exists("met_all.gz"))
+  download.file(
+    url = "https://raw.githubusercontent.com/USCbiostats/data-science-data/master/02_met/met_all.gz",
+    destfile = "met_all.gz",
+    method   = "libcurl",
+    timeout  = 60
+    )
+met <- data.table::fread("met_all.gz")
+
+library(tidyverse)
+library(data.table)
+library(dplyr)
+library(ggplot2)
+library(leaflet)
+library(gganimate)
+```
+
+## Preparing the Data
+
+1.  <div>
+
+    ```{r}
+    met <- met[temp>-17]
+    met2 <- met[order(temp)]
+    head(met2)
+    summary(met$elev)
+    met[met$elev==9999.0] <- NA
+    summary(met$elev)
+    met$date <- as.Date(paste(met$year, met$month, met$day, sep = "-"))
+
+    metweek1 <- met[, Week := week(met$date)]
+    metweek1 <- filter(metweek1, Week == 31)
+
+    met_avg <- metweek1[,.(
+      temp     = mean(temp,na.rm=TRUE),
+      rh       = mean(rh,na.rm=TRUE),
+      wind.sp  = mean(wind.sp,na.rm=TRUE),
+      dew.point  = mean(dew.point),
+      vis.dist = mean(vis.dist,na.rm=TRUE),
+      lat      = mean(lat),
+      lon      = mean(lon), 
+      elev     = mean(elev,na.rm=TRUE)
+    ), by=c("USAFID", "day")]
+
+    met_avg$region <- ifelse(met_avg$lon < -98.00 & met_avg$lat >= 39.71, "NW",
+                               ifelse(met_avg$lon < -98.00 & met_avg$lat <39.71, "SW",
+                                      ifelse(met_avg$lon >= -98.00 & met_avg$lat >= 39.71, "NE",
+                                             ifelse(met_avg$lon >= -98.00 & met_avg$lat < 39.71, "SE", NA))))
+    met_avg[, elev_cat := fifelse(elev > 252, "high", "low")]
+    ```
+
+    </div>
+
+## Violin Plot of Wind Speed and Dew Point by Region
+
+```{r}
+met_avg[!is.na(region)] %>% 
+  ggplot() + 
+  geom_violin(mapping = aes(x = 1, y = met_avg$dew.point, color = met_avg$region)) + facet_wrap(~ region, nrow=1)
+met_avg[!is.na(region)] %>% 
+  ggplot() + 
+  geom_violin(mapping = aes(x = 1, y = met_avg$wind.sp, color = met_avg$region)) + facet_wrap(~ region, nrow=1)
+```
+
+There is heavier distribution in dew point in the western regions.
+
+There is a wide distribution with potential outliers in the northeast region.
+
+## Jitter and Stat Smooth
+
+```{r}
+met_avg[!is.na(region)] %>% 
+  ggplot() + 
+  geom_jitter(mapping = aes(x = met_avg$wind.sp, y = met_avg$dew.point, color = met_avg$region)) + stat_smooth(mapping = aes(x = wind.sp, y = dew.point))
+```
+
+As wind speed gets higher the dew point tends to be slightly lower.
+
+## Barplots of weather stations
+
+```{r}
+met_avg[!is.na(region)] %>%
+  ggplot() + 
+  geom_bar(mapping = aes(x = met_avg$elev_cat, fill = met_avg$region), position = "dodge") + 
+  scale_fill_brewer(palette = 4) +
+  labs(title = "Weather Station Elevation by Region") + 
+  labs(x = expression("Elevation Categories"), y = "Number of Observations at Elevation")
+```
+
+The northeast has similar amounts of observations at high and low elevations but the northwest has very few observations at low elevations. The southeast has a very high number of observations at the low elevations.
+
+## Stat Summary
+
+```{r}
+met_avg[!is.na(region)] %>%
+  ggplot() + 
+    stat_summary(mapping = aes(x = met_avg$wind.sp, y = met_avg$region), geom = "errorbar", 
+    fun.data = "mean_sdl")
+met_avg[!is.na(region)] %>%
+  ggplot() + 
+    stat_summary(mapping = aes(x = met_avg$dew.point, y = met_avg$region), geom = "errorbar",
+    fun.data = "mean_sdl")
+```
+
+Dew point average is lower in western regions and higher in eastern regions.
+
+Average wind speed is lower in the eastern regions and higher in the western regions.
+
+## Spatial Trend in relative humidity
+
+```{r}
+met_avg2 <- met_avg[,.(rh = mean(rh,na.rm=TRUE), lat = mean(lat), lon = mean(lon)),  by=c("USAFID")]
+met_avg2 <- met_avg2[!is.na(rh)]
+rh.pal <- colorNumeric(c('turquoise','purple','coral'), domain=met_avg2$rh)
+rh.pal
+
+humiditymap <- leaflet(met_avg2) %>% 
+  # The looks of the Map
+  addProviderTiles('CartoDB.Positron') %>% 
+  # Some circles
+  addCircles(
+    lat = ~met_avg$lat, lng=~met_avg$lon,
+    label = ~paste0(round(met_avg2$rh,2)), color = ~ rh.pal(met_avg2$rh),
+    opacity = 1, fillOpacity = 1, radius = 500
+    ) %>%
+  # legend
+  addLegend('bottomleft', pal=rh.pal, values=met_avg2$rh,
+          title='Humidity', opacity=1)
+humiditymap
+```
+
+## Ggplot extension
+
+```{r}
+
+ggplot(met_avg, aes(factor(met_avg$dew.point), met_avg$region)) + 
+  geom_boxplot() +
+  # Here comes the gganimate code
+  transition_states(
+    gear,
+    transition_length = 2,
+    state_length = 1
+  ) +
+  enter_fade() + 
+  exit_shrink() +
+  ease_aes('sine-in-out')
+```
