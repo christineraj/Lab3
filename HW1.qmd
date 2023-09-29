@@ -1,0 +1,168 @@
+---
+title: "Homework 1"
+author: "Christine Raj"
+format:
+  html:
+    embed-resources: true
+editor: visual
+---
+
+## Adding libraries and packages
+
+```{r}
+library(data.table)
+library(tidyverse)
+library(dplyr)
+library(leaflet)
+library(lubridate)
+library(ggplot2)
+```
+
+## Uploading data 
+
+```{r}
+part2002 <- data.table::fread(file.path("~", "Downloads", "ad_viz_plotval_data.csv"))
+part2022 <- data.table::fread(file.path("~", "Downloads", "ad_viz_plotval_data (1).csv"))
+```
+
+## Looking through 2002 Data
+
+```{r}
+dim(part2002)
+head(part2002)
+tail(part2002)
+str(part2002)
+table(part2002$Date)
+table(part2002$Source)
+table(part2002$`Site ID`)
+table(part2002$POC)
+summary(part2002$`Daily Mean PM2.5 Concentration`)
+table(part2002$`Daily Mean PM2.5 Concentration`)
+summary(part2002$DAILY_AQI_VALUE)
+table(part2002$DAILY_AQI_VALUE)
+table(part2002$`Site Name`)
+summary(part2002$DAILY_OBS_COUNT)
+
+```
+
+The dataset has 15976 observations and 20 variables. There are no NA's and there was at least one value taken once per day throughout all of 2002 at one of the sites. There were no missed days. The data was collected from counties all across California. The median daily AQI value was 50.00 while the mean was 53.68. The daily median PM2.5 is 12.00 and the mean is 16.12. There are no NAs in this dataset.
+
+## Looking through 2022 Data
+
+```{r}
+dim(part2022)
+head(part2022)
+tail(part2022)
+str(part2022)
+table(part2022$Date)
+table(part2022$Source)
+table(part2022$`Site ID`)
+table(part2022$POC)
+summary(part2022$`Daily Mean PM2.5 Concentration`)
+table(part2022$`Daily Mean PM2.5 Concentration`)
+summary(part2022$DAILY_AQI_VALUE)
+table(part2022$DAILY_AQI_VALUE)
+table(part2022$`Site Name`)
+summary(part2022$DAILY_OBS_COUNT)
+```
+
+The 2022 dataset has 56140 observations and 20 variables. There are no NA's and there was at least one value taken once per day throughout all of 2022 at one of the sites. There were no missed days. The data was collected from counties all across California. The median daily AQI value was 29.00 while the mean was 32.84. The daily median PM2.5 is 6.90 and the mean is 8.52. There are no NAs in this dataset.
+
+## Combining the Datatables
+
+```{r}
+part2002$year <- "2002"
+part2022$year <- "2022"
+#creating new names for variables
+part2002$PM2.5 <- part2002$`Daily Mean PM2.5 Concentration`
+part2022$PM2.5 <- part2022$`Daily Mean PM2.5 Concentration`
+part2002$lat <- part2002$SITE_LATITUDE
+part2022$lat <- part2022$SITE_LATITUDE
+part2002$lon <- part2002$SITE_LONGITUDE
+part2022$lon <- part2022$SITE_LONGITUDE
+#merging data
+combo <- rbind(part2002, part2022)
+
+```
+
+## Creating a basic map
+
+```{r}
+year.pal <- colorFactor(c('turquoise','coral'), domain = combo$year)
+leaflet(combo) %>% addProviderTiles('CartoDB.Positron') %>% addCircles(lat=~combo$lat, lng=~combo$lon,  label = ~paste0(round(combo$PM2.5,10)), opacity=1, fillOpacity = 1, radius = 100, color = ~ year.pal(combo$year)) %>%
+  addLegend('bottomleft', pal=year.pal, value=combo$year,
+          title='Year', opacity=1)
+```
+
+There are a lot more locations in 2022 then there are in 2002. There are very few sites near the border between California and Arizona. In 2002 the distribution is more focused on the border of California and a couple spots in central California. In 2022 there are many more sites throughout the state with higher concentrations around Sacramento, the bay area, LA, and San Diego.
+
+## Checking PM2.5
+
+```{r}
+table(is.na(combo$PM2.5))
+boxplot(combo$PM2.5)
+barplot(combo$PM2.5)
+hist(combo$PM2.5)
+```
+
+There is no missing data in PM2.5.
+
+## Main Question
+
+```{r}
+#state
+combo$datenum<- as.Date.character(combo$Date)
+combo %>% 
+  ggplot() + 
+  geom_boxplot(mapping = aes(x = 1, y = combo$PM2.5, color = combo$year)) + facet_wrap(~ year, nrow=1)
+summary(part2002$PM2.5)
+summary(part2022$PM2.5)
+combo %>% 
+  ggplot() + 
+  geom_histogram(mapping = aes(x = PM2.5, color = combo$year, fill = combo$year), alpha=0.5, position="dodge")
+combo %>%
+  ggplot() +
+  geom_line(mapping = aes(x = datenum, y = combo$PM2.5, group = year, color = year))
+
+#county
+combo[combo$COUNTY == "Alameda"] %>% 
+  ggplot() + 
+  geom_boxplot(mapping = aes(x = 1, y = PM2.5, color = year)) + facet_wrap(~ year, nrow=1)
+combo[combo$COUNTY == "Alameda"] %>% 
+  ggplot() + 
+  geom_histogram(mapping = aes(x = PM2.5, color = year, fill = year), alpha=0.5, position="identity")
+alameda02 <- subset(part2002, COUNTY = "Alameda")
+summary(alameda02$PM2.5)
+alameda22 <- subset(part2022, COUNTY = "Alameda")
+summary(alameda22$PM2.5)
+combo[combo$COUNTY == "Alameda"] %>%
+  ggplot() +
+  geom_line(mapping = aes(x = datenum, y = PM2.5, group = year, color = year))
+
+#LA Site
+combo[combo$`Site Name` == "Los Angeles-North Main Street"] %>% 
+  ggplot() + 
+  geom_boxplot(mapping = aes(x = 1, y = PM2.5, color = year)) + facet_wrap(~ year, nrow=1)
+combo[combo$`Site Name` == "Los Angeles-North Main Street"] %>%
+  ggplot() + 
+  geom_histogram(mapping = aes(x = PM2.5, color = year, fill = year), alpha=0.5, position="identity")
+LA02 <- subset(part2002, 'Site Name' = "Los Angeles-North Main Street")
+summary(LA02$PM2.5)
+LA22 <- subset(part2022, 'Site Name' = "Los Angeles-North Main Street")
+summary(LA22$PM2.5)
+combo[combo$`Site Name` == "Los Angeles-North Main Street"] %>%
+  ggplot() +
+  geom_line(mapping = aes(x = datenum, y = PM2.5, group = year, color = year))
+```
+
+State
+
+Overall for the state data the the median 75th quarrile for 2022 is all much lower than the particulate matter 2.5 in 2002. However there are a lot more outliers in 2022 than there are in 2002 and the outliers are much higher than they are in 2002. There is a period of time in september to october of 2022 that the particulate matter across California is really high, this is probably due to a wildfire that occurred in California during that time. Due to the outliers the data from 2022 seems to be worsening particulate matter due to just how much higher the bad days are than in 2002 but overall has better air quality.
+
+County
+
+When looking at the data from just Alameda county it is clear that overall the air quality is better in 2022 than it was in 2002. There are far higher outliers in 2002 than there are in 2022. Also the medians and means of particulate matter are lower in 2022 than in 2002.
+
+LA Site
+
+When looking at the data from just the LA Site as Los Angeles-North Main Street it is clear that the air quality is better in 2022 than it is in 2002. When looking at the line plot almost every day in 2002 had a higher particulate matter amount than in 2022.
