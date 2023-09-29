@@ -1,0 +1,1481 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.3.353">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Christine Raj">
+
+<title>Lab 6</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="Lab6_files/libs/clipboard/clipboard.min.js"></script>
+<script src="Lab6_files/libs/quarto-html/quarto.js"></script>
+<script src="Lab6_files/libs/quarto-html/popper.min.js"></script>
+<script src="Lab6_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="Lab6_files/libs/quarto-html/anchor.min.js"></script>
+<link href="Lab6_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="Lab6_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="Lab6_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="Lab6_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="Lab6_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body class="fullcontent">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Lab 6</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Christine Raj </p>
+          </div>
+  </div>
+    
+  
+    
+  </div>
+  
+
+</header>
+
+<section id="libraries" class="level2">
+<h2 class="anchored" data-anchor-id="libraries">Libraries</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'dplyr'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from 'package:stats':
+
+    filter, lag</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from 'package:base':
+
+    intersect, setdiff, setequal, union</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+✔ forcats   1.0.0     ✔ stringr   1.5.0
+✔ lubridate 1.9.2     ✔ tibble    3.2.1
+✔ purrr     1.0.2     ✔ tidyr     1.3.0
+✔ readr     2.1.4     </code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ dplyr::filter() masks stats::filter()
+✖ dplyr::lag()    masks stats::lag()
+ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidytext)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="importing-data" class="level2">
+<h2 class="anchored" data-anchor-id="importing-data">Importing Data</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">file.exists</span>(<span class="st">"mtsamples.csv"</span>))</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">download.file</span>(</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="at">url =</span> <span class="st">"https://raw.githubusercontent.com/USCbiostats/data-science-data/master/00_mtsamples/mtsamples.csv"</span>,</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="at">destfile =</span> <span class="st">"mtsamples.csv"</span>,</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="at">method =</span> <span class="st">"libcurl"</span>,</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="at">timeout =</span> <span class="dv">60</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>mtsamples <span class="ot">&lt;-</span> data.table<span class="sc">::</span><span class="fu">fread</span>(<span class="st">"mtsamples.csv"</span>)</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a><span class="fu">saveRDS</span>(mtsamples, <span class="at">file =</span> <span class="st">"mtsamples.rds"</span>)</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>mtsamplesrds <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(<span class="st">"mtsamples.rds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="getting-specialties" class="level2">
+<h2 class="anchored" data-anchor-id="getting-specialties">Getting specialties</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Use count() to get the count of each unique character in V3</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>numberofspecialties <span class="ot">&lt;-</span> mtsamples <span class="sc">|&gt;</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(V3)</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Print the result</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(numberofspecialties)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                               V3    n
+ 1:          Allergy / Immunology    7
+ 2:                       Autopsy    8
+ 3:                    Bariatrics   18
+ 4:    Cardiovascular / Pulmonary  372
+ 5:                  Chiropractic   14
+ 6:    Consult - History and Phy.  516
+ 7:    Cosmetic / Plastic Surgery   27
+ 8:                     Dentistry   27
+ 9:                   Dermatology   29
+10:          Diets and Nutritions   10
+11:             Discharge Summary  108
+12:          ENT - Otolaryngology   98
+13:        Emergency Room Reports   75
+14:                 Endocrinology   19
+15:              Gastroenterology  230
+16:              General Medicine  259
+17:         Hematology - Oncology   90
+18:     Hospice - Palliative Care    6
+19:        IME-QME-Work Comp etc.   16
+20:      Lab Medicine - Pathology    8
+21:                       Letters   23
+22:                    Nephrology   81
+23:                     Neurology  223
+24:                  Neurosurgery   94
+25:       Obstetrics / Gynecology  160
+26:                  Office Notes   51
+27:                 Ophthalmology   83
+28:                    Orthopedic  355
+29:               Pain Management   62
+30:         Pediatrics - Neonatal   70
+31:     Physical Medicine - Rehab   21
+32:                      Podiatry   47
+33:       Psychiatry / Psychology   53
+34:                     Radiology  273
+35:                  Rheumatology   10
+36: SOAP / Chart / Progress Notes  166
+37:                Sleep Medicine   20
+38:             Speech - Language    9
+39:                       Surgery 1103
+40:                       Urology  158
+41:             medical_specialty    1
+                               V3    n</code></pre>
+</div>
+</div>
+<p>These categories are not evenly distributed and there is some overlap between categories.</p>
+</section>
+<section id="most-frequent-words" class="level2">
+<h2 class="anchored" data-anchor-id="most-frequent-words">Most frequent words</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>mtsamplesrds <span class="sc">%&gt;%</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unnest_tokens</span>(token, V5) <span class="sc">%&gt;%</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(token, <span class="at">sort =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">top_n</span>(<span class="dv">20</span>, n)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>      token      n
+ 1:     the 149888
+ 2:     and  82779
+ 3:     was  71765
+ 4:      of  59205
+ 5:      to  50632
+ 6:       a  42810
+ 7:    with  35815
+ 8:      in  32807
+ 9:      is  26378
+10: patient  22065
+11:      no  17874
+12:     she  17593
+13:     for  17049
+14:      he  15542
+15:    were  15535
+16:      on  14694
+17:    this  13949
+18:      at  13492
+19:    then  12430
+20:   right  11587</code></pre>
+</div>
+</div>
+<p>This makes sense that the most common words are filler words and transition words. This does not show any insight into the data.</p>
+</section>
+<section id="most-frequent-words-without-stop-words" class="level2">
+<h2 class="anchored" data-anchor-id="most-frequent-words-without-stop-words">Most frequent words without stop words</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>mtsamplesrds <span class="sc">%&gt;%</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unnest_tokens</span>(token, V5) <span class="sc">%&gt;%</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(token, <span class="at">sort =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">anti_join</span>(stop_words, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"token"</span> <span class="ot">=</span> <span class="st">"word"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">anti_join</span>(<span class="fu">data.frame</span>(<span class="at">token =</span> <span class="fu">as.character</span>(<span class="dv">0</span><span class="sc">:</span><span class="dv">9</span>)), <span class="at">by =</span> <span class="st">"token"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>             token     n
+    1:     patient 22065
+    2:        left 11258
+    3:     history  9509
+    4:      normal  7526
+    5:   procedure  7463
+   ---                  
+23010:   worthless     1
+23011:   wristband     1
+23012:       xyzal     1
+23013: zithromycin     1
+23014:        zung     1</code></pre>
+</div>
+</div>
+<p>There is a better idea of what the text is about because there is now more clear information that this is problem related to healthcare in some way. This shows the common words that may be used in a healthcare setting.</p>
+</section>
+<section id="using-ngrams" class="level2">
+<h2 class="anchored" data-anchor-id="using-ngrams">Using ngrams</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>mtsamplesrds <span class="sc">%&gt;%</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unnest_ngrams</span>(bigram, V5, <span class="at">n =</span> <span class="dv">2</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(bigram, <span class="at">sort =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">top_n</span>(<span class="dv">20</span>, n)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>         bigram     n
+ 1: the patient 20307
+ 2:      of the 19062
+ 3:      in the 12790
+ 4:      to the 12374
+ 5:    was then  6956
+ 6:     and the  6350
+ 7: patient was  6293
+ 8:   the right  5509
+ 9:      on the  5241
+10:    the left  4860
+11:      with a  4857
+12:  history of  4537
+13:       to be  4345
+14:        is a  4014
+15:    with the  4002
+16:    there is  3950
+17:      at the  3657
+18:   there was  3334
+19:  patient is  3332
+20:  was placed  3328</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>mtsamplesrds <span class="sc">%&gt;%</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unnest_ngrams</span>(trigram, V5, <span class="at">n =</span> <span class="dv">3</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(trigram, <span class="at">sort =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">top_n</span>(<span class="dv">20</span>, n)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                    trigram    n
+ 1:         the patient was 6104
+ 2:          the patient is 3075
+ 3:              as well as 2243
+ 4:             there is no 1678
+ 5:      the operating room 1532
+ 6:            patient is a 1491
+ 7:      prepped and draped 1490
+ 8:             was used to 1480
+ 9:           and draped in 1372
+10:            at this time 1333
+11:         the patient has 1300
+12:        to the operating 1156
+13:           placed in the 1141
+14:          no evidence of 1132
+15:            was taken to 1108
+16:            there was no 1089
+17: tolerated the procedure 1066
+18:    past medical history 1063
+19:      history of present 1056
+20:      of present illness 1038
+21:            of the right 1038
+22:           was placed in 1038
+                    trigram    n</code></pre>
+</div>
+</div>
+</section>
+<section id="counting-words-before-and-after-patient" class="level2">
+<h2 class="anchored" data-anchor-id="counting-words-before-and-after-patient">Counting words before and after patient</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>mtsamplesrds <span class="sc">%&gt;%</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unnest_ngrams</span>(trigram, V5, <span class="at">n =</span> <span class="dv">3</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">separate</span>(trigram, <span class="at">into =</span> <span class="fu">c</span>(<span class="st">"word1"</span>, <span class="st">"word2"</span>, <span class="st">"word3"</span>), <span class="at">sep =</span> <span class="st">" "</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(word1, word2, word3) <span class="sc">%&gt;%</span></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(word2 <span class="sc">==</span> <span class="st">"patient"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(word1, <span class="at">sort =</span> <span class="cn">TRUE</span>) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>               word1     n
+1                the 20294
+2               this   463
+3            history   101
+4                  a    67
+5                and    47
+6          procedure    32
+7             female    26
+8               with    25
+9                use    24
+10               old    23
+11            sample    23
+12              male    22
+13               new    19
+14           general    16
+15           illness    16
+16              plan    16
+17       indications    15
+18                to    15
+19         allergies    14
+20              your    13
+21           correct    11
+22            detail    11
+23                of    11
+24            course    10
+25            normal    10
+26              exam     9
+27               for     9
+28               lbs     9
+29                in     8
+30      instructions     8
+31           minutes     8
+32         recommend     8
+33           systems     8
+34               day     7
+35            digits     7
+36                 s     7
+37        subjective     7
+38              that     7
+39                 1     6
+40                 2     6
+41            doctor     6
+42       established     6
+43              eyes     6
+44   hyperthyroidism     6
+45            injury     6
+46                my     6
+47              none     6
+48          obtained     6
+49              pain     6
+50             route     6
+51            social     6
+52         technique     6
+53          activity     5
+54           therapy     5
+55             weeks     5
+56                 4     4
+57       appropriate     4
+58       bilaterally     4
+59            breast     4
+60    cardiovascular     4
+61    constitutional     4
+62      dermatologic     4
+63              each     4
+64                ed     4
+65          findings     4
+66           further     4
+67  gastrointestinal     4
+68     genitourinary     4
+69             goals     4
+70               ill     4
+71         infection     4
+72          infusion     4
+73     integumentary     4
+74       medications     4
+75      neurological     4
+76       observation     4
+77               per     4
+78          pleasant     4
+79      preprocedure     4
+80       psychiatric     4
+81       respiratory     4
+82              room     4
+83          seizures     4
+84            source     4
+85            strips     4
+86         treatment     4
+87       uncertainty     4
+88               yes     4
+89             young     4
+90             after     3
+91                as     3
+92               but     3
+93            cardio     3
+94          children     3
+95              cuff     3
+96        depression     3
+97       dermatology     3
+98          diabetes     3
+99         discharge     3
+100      discouraged     3
+101       encouraged     3
+102        endocrine     3
+103               gi     3
+104               gu     3
+105           health     3
+106            heent     3
+107        impotence     3
+108       laceration     3
+109          monitor     3
+110         oriented     3
+111            p.r.n     3
+112               pm     3
+113        pregnancy     3
+114     presentation     3
+115             resp     3
+116             site     3
+117         symptoms     3
+118             take     3
+119             team     3
+120            today     3
+121            total     3
+122            units     3
+123           weight     3
+124             when     3
+125            which     3
+126               05     2
+127                3     2
+128               58     2
+129                8     2
+130               98     2
+131             98.6     2
+132            above     2
+133       activities     2
+134          adenoma     2
+135        admission     2
+136            again     2
+137            agent     2
+138              ago     2
+139          alcohol     2
+140       appearance     2
+141            areas     2
+142      arthralgias     2
+143         asplenic     2
+144      atelectasis     2
+145             back     2
+146        bilateral     2
+147           breath     2
+148           brings     2
+149             case     2
+150        clearance     2
+151         collapse     2
+152        complaint     2
+153       complaints     2
+154        condition     2
+155         contents     2
+156          context     2
+157    contraception     2
+158         coughing     2
+159             data     2
+160    decompression     2
+161       delightful     2
+162       difficulty     2
+163          disease     2
+164               dl     2
+165           domain     2
+166             down     2
+167        eclampsia     2
+168         effusion     2
+169         employed     2
+170        enlarging     2
+171      examination     2
+172         exercise     2
+173        extensive     2
+174      extremities     2
+175          factors     2
+176              fat     2
+177     fibrillation     2
+178             fist     2
+179             from     2
+180        gestation     2
+181             gout     2
+182           habits     2
+183             hand     2
+184          healthy     2
+185            heavy     2
+186      hemiparesis     2
+187       hemostasis     2
+188       herniation     2
+189              hpi     2
+190     hypertension     2
+191       indication     2
+192       laboratory     2
+193             loss     2
+194      maintenance     2
+195      mammography     2
+196           manner     2
+197          married     2
+198           minute     2
+199           months     2
+200            needs     2
+201             nice     2
+202               no     2
+203             note     2
+204            noted     2
+205               on     2
+206          patient     2
+207        pneumonia     2
+208         position     2
+209   preoperatively     2
+210          primary     2
+211           proper     2
+212         protocol     2
+213             rash     2
+214           rectum     2
+215       recurrence     2
+216        regularly     2
+217          removed     2
+218             rest     2
+219         sampling     2
+220          scarred     2
+221        sedentary     2
+222              see     2
+223           severe     2
+224             size     2
+225           skills     2
+226          stating     2
+227           stitch     2
+228        suctioned     2
+229          surgery     2
+230          syncope     2
+231         syndrome     2
+232            taken     2
+233             then     2
+234             time     2
+235        tolerable     2
+236            train     2
+237             tube     2
+238     unremarkable     2
+239           vagina     2
+240            visit     2
+241         vomiting     2
+242         weakness     2
+243             week     2
+244          weekend     2
+245            where     2
+246        withdrawn     2
+247      workstation     2
+248             yyyy     2
+249               01     1
+250              aid     1
+251          arrival     1
+252          breasts     1
+253            cough     1
+254          daytime     1
+255         directly     1
+256      dysfunction     1
+257         guidance     1
+258         improved     1
+259      intercourse     1
+260            light     1
+261         movement     1
+262          parents     1
+263      performance     1
+264              put     1
+265          reports     1
+266     restrictions     1
+267             term     1
+268              vol     1</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>mtsamplesrds <span class="sc">%&gt;%</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unnest_ngrams</span>(trigram, V5, <span class="at">n =</span> <span class="dv">3</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">separate</span>(trigram, <span class="at">into =</span> <span class="fu">c</span>(<span class="st">"word1"</span>, <span class="st">"word2"</span>, <span class="st">"word3"</span>), <span class="at">sep =</span> <span class="st">" "</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(word1, word2, word3) <span class="sc">%&gt;%</span></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(word2 <span class="sc">==</span> <span class="st">"patient"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(word3, <span class="at">sort =</span> <span class="cn">TRUE</span>) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>               word3    n
+1                was 6291
+2                 is 3332
+3                has 1417
+4          tolerated  994
+5                had  886
+6               will  616
+7             denies  552
+8                and  377
+9             states  363
+10              does  334
+11              also  301
+12                in  246
+13               did  232
+14                to  215
+15               the  200
+16         underwent  180
+17          received  160
+18           reports  155
+19              with  141
+20        understood  113
+21          presents   91
+22            should   83
+23             lives   81
+24               who   79
+25                on   77
+26         presented   72
+27            admits   69
+28           appears   68
+29               for   67
+30         including   67
+31             would   65
+32            denied   62
+33              then   61
+34          reported   58
+35                at   57
+36          remained   56
+37                as   52
+38              went   52
+39       understands   51
+40      subsequently   49
+41                of   47
+42            stated   46
+43               she   44
+44               may   40
+45         continued   38
+46          returned   38
+47            agreed   36
+48                he   36
+49                 a   35
+50         continues   35
+51             after   34
+52              came   34
+53             comes   32
+54             under   32
+55          appeared   31
+56                 i   31
+57              back   30
+58         currently   30
+59           desires   30
+60              left   29
+61             began   28
+62       experienced   28
+63              felt   28
+64    identification   28
+65              that   28
+66             could   27
+67         developed   27
+68           started   27
+69             today   27
+70         complains   25
+71         describes   25
+72              this   25
+73             being   24
+74          informed   24
+75             takes   24
+76        discharged   23
+77             notes   23
+78              said   23
+79               but   22
+80               can   22
+81        complained   22
+82         initially   22
+83             needs   22
+84             noted   22
+85              from   21
+86            became   20
+87              says   20
+88             about   19
+89        apparently   19
+90           brought   18
+91            cannot   18
+92              gave   18
+93         regarding   18
+94           relates   18
+95             still   18
+96          recently   17
+97            smokes   17
+98           however   16
+99           returns   16
+100            seems   16
+101               it   15
+102            shows   15
+103        ambulates   14
+104               be   14
+105               by   14
+106          decided   14
+107        exercised   14
+108          herself   14
+109           needed   14
+110        procedure   14
+111              all   13
+112            moves   13
+113            risks   13
+114               up   13
+115          elected   12
+116           having   12
+117     instructions   12
+118           wished   12
+119             woke   12
+120          arrived   11
+121        completed   11
+122            gives   11
+123          history   11
+124          include   11
+125         physical   11
+126           return   11
+127         suffered   11
+128          already   10
+129          becomes   10
+130     demonstrates   10
+131            feels   10
+132           follow   10
+133          himself   10
+134             home   10
+135         improved   10
+136            lying   10
+137              now   10
+138        recovered   10
+139          refuses   10
+140        requested   10
+141               we   10
+142                2    9
+143               an    9
+144          because    9
+145             care    9
+146              her    9
+147         includes    9
+148            later    9
+149          prepped    9
+150         provided    9
+151            taken    9
+152             took    9
+153          undergo    9
+154            walks    9
+155           weighs    9
+156              abc    8
+157            again    8
+158            along    8
+159           brings    8
+160       clinically    8
+161          consent    8
+162       discussing    8
+163        indicates    8
+164             made    8
+165              met    8
+166           passed    8
+167         position    8
+168       previously    8
+169             quit    8
+170            rates    8
+171         requests    8
+172           scored    8
+173      transferred    8
+174           wanted    8
+175        according    7
+176         actually    7
+177             died    7
+178           family    7
+179         included    7
+180             into    7
+181            might    7
+182             once    7
+183        operative    7
+184           placed    7
+185      positioning    7
+186         referred    7
+187            right    7
+188           speaks    7
+189            spent    7
+190             upon    7
+191             used    7
+192             when    7
+193            which    7
+194            works    7
+195         admitted    6
+196         daughter    6
+197             dear    6
+198         declined    6
+199        described    6
+200         exhibits    6
+201              his    6
+202         movement    6
+203              not    6
+204            opted    6
+205               or    6
+206         oriented    6
+207            plans    6
+208    questionnaire    6
+209          refused    6
+210     relationship    6
+211          remains    6
+212          resides    6
+213           severe    6
+214           signed    6
+215           spends    6
+216           supine    6
+217            there    6
+218           unable    6
+219                3    5
+220         although    5
+221              are    5
+222            asked    5
+223             been    5
+224         continue    5
+225             eats    5
+226            ended    5
+227        expressed    5
+228            first    5
+229             have    5
+230        indicated    5
+231             just    5
+232             last    5
+233       maintained    5
+234            never    5
+235         performs    5
+236             plan    5
+237            prior    5
+238            since    5
+239        sustained    5
+240          talking    5
+241            tends    5
+242       tolerating    5
+243       verbalized    5
+244          vomited    5
+245            wants    5
+246             were    5
+247         accepted    4
+248          advises    4
+249       assessment    4
+250         attended    4
+251         believes    4
+252          clearly    4
+253          closely    4
+254        consented    4
+255     deteriorated    4
+256               dr    4
+257           drinks    4
+258           during    4
+259           either    4
+260        extremity    4
+261             fell    4
+262         followed    4
+263             goal    4
+264              got    4
+265       identified    4
+266      immediately    4
+267         increase    4
+268       instructed    4
+269            looks    4
+270            makes    4
+271               no    4
+272          nothing    4
+273         obtained    4
+274             only    4
+275        otherwise    4
+276             over    4
+277        overnight    4
+278     participated    4
+279       positioned    4
+280         probably    4
+281       progressed    4
+282           pushed    4
+283              put    4
+284         regained    4
+285         required    4
+286        reviewing    4
+287            ruled    4
+288           seemed    4
+289             sees    4
+290          stopped    4
+291            tells    4
+292        therefore    4
+293             told    4
+294    unfortunately    4
+295           voiced    4
+296             well    4
+297           wishes    4
+298          without    4
+299               13    3
+300              2.5    3
+301         achieved    3
+302        attempted    3
+303            based    3
+304          calcium    3
+305           called    3
+306          claimed    3
+307      compression    3
+308       consisting    3
+309        consulted    3
+310            cries    3
+311         deficits    3
+312        delivered    3
+313             deny    3
+314          desired    3
+315         dynamics    3
+316           elects    3
+317           enjoys    3
+318        estimates    3
+319       eventually    3
+320        explained    3
+321         followup    3
+322           forgot    3
+323            given    3
+324             here    3
+325       impression    3
+326      information    3
+327             laid    3
+328        maintains    3
+329             meds    3
+330             need    3
+331       originally    3
+332            other    3
+333              out    3
+334             post    3
+335  postoperatively    3
+336       presenting    3
+337        proceeded    3
+338          profile    3
+339    progressively    3
+340              ran    3
+341            ranks    3
+342          receive    3
+343           reduce    3
+344              sat    3
+345              say    3
+346        scheduled    3
+347           seated    3
+348      significant    3
+349          sitting    3
+350           smoked    3
+351            spoke    3
+352            state    3
+353           status    3
+354     subjectively    3
+355           taking    3
+356            tests    3
+357           though    3
+358            tried    3
+359            turns    3
+360          tylenol    3
+361              use    3
+362           weight    3
+363            while    3
+364           within    3
+365             work    3
+366           worked    3
+367               37    2
+368                4    2
+369              600    2
+370               72    2
+371          acutely    2
+372     additionally    2
+373               af    2
+374        afterward    2
+375       aggressive    2
+376           agrees    2
+377            alert    2
+378        allergies    2
+379     alternatives    2
+380        ambulated    2
+381            ample    2
+382         answered    2
+383         attempts    2
+384          attends    2
+385            awake    2
+386            awoke    2
+387            axial    2
+388           bathes    2
+389            begin    2
+390        beginning    2
+391             best    2
+392          between    2
+393       biological    2
+394      bradycardic    2
+395           breast    2
+396        breathing    2
+397             call    2
+398    catheterizing    2
+399        certainly    2
+400            chart    2
+401           claims    2
+402        condition    2
+403        confirmed    2
+404         consumed    2
+405      continually    2
+406        converted    2
+407        correctly    2
+408              cpt    2
+409         declines    2
+410           deemed    2
+411          despite    2
+412        diagnoses    2
+413       discomfort    2
+414      discontinue    2
+415           dorsal    2
+416           draped    2
+417              eat    2
+418     emphatically    2
+419         endorsed    2
+420         endorses    2
+421           enters    2
+422 enthusiastically    2
+423       especially    2
+424       evaluation    2
+425             even    2
+426             ever    2
+427        exhibited    2
+428     experimented    2
+429        expresses    2
+430        extubated    2
+431              eye    2
+432           failed    2
+433         finished    2
+434          follows    2
+435            found    2
+436              get    2
+437           giving    2
+438            goals    2
+439             goes    2
+440            going    2
+441             heal    2
+442           healed    2
+443  hemodynamically    2
+444       horizontal    2
+445         hospital    2
+446     hospitalized    2
+447       identifies    2
+448               if    2
+449        incapable    2
+450     incidentally    2
+451         ingested    2
+452    interestingly    2
+453 intraoperatively    2
+454        intubated    2
+455               iv    2
+456           jerked    2
+457             knee    2
+458             knew    2
+459            knows    2
+460       laboratory    2
+461           likely    2
+462             lost    2
+463           mainly    2
+464        maximized    2
+465        medically    2
+466       medication    2
+467             mini    2
+468          missing    2
+469             most    2
+470       motivation    2
+471            moved    2
+472              mrs    2
+473           nature    2
+474        neglected    2
+475     noncompliant    2
+476          noticed    2
+477              npo    2
+478          nursing    2
+479              off    2
+480           opting    2
+481            paced    2
+482             past    2
+483          patient    2
+484              per    2
+485        performed    2
+486        physician    2
+487          planned    2
+488           please    2
+489        possesses    2
+490    postprocedure    2
+491     preoperative    2
+492   preoperatively    2
+493         pressure    2
+494         properly    2
+495      psychologic    2
+496         pursuing    2
+497          rapidly    2
+498               re    2
+499          reached    2
+500          recalls    2
+501         receives    2
+502          recheck    2
+503     recollection    2
+504         refusing    2
+505          related    2
+506          replies    2
+507       reportedly    2
+508        responded    2
+509       restricted    2
+510         retained    2
+511          retains    2
+512          retired    2
+513         revealed    2
+514         reviewed    2
+515              saw    2
+516        secondary    2
+517              see    2
+518            seeks    2
+519             seen    2
+520             semi    2
+521             sent    2
+522              set    2
+523           showed    2
+524             sign    2
+525           simply    2
+526        sincerely    2
+527          slipped    2
+528           snores    2
+529               so    2
+530           sought    2
+531        stabilize    2
+532           stands    2
+533          stating    2
+534            stood    2
+535             stop    2
+536         stopping    2
+537        stressing    2
+538          suffers    2
+539       supportive    2
+540       supposedly    2
+541       terminated    2
+542          through    2
+543         together    2
+544              tpa    2
+545              try    2
+546         tympanic    2
+547       ultimately    2
+548        undergoes    2
+549           unlike    2
+550            upper    2
+551         urinates    2
+552            using    2
+553          usually    2
+554         utilized    2
+555       verbalizes    2
+556             very    2
+557              via    2
+558            visit    2
+559          vitamin    2
+560           voices    2
+561          weighed    2
+562            where    2
+563          whether    2
+564             whom    2
+565           wife's    2
+566             wore    2
+567            wound    2
+568              xxx    2
+569             abcd    1
+570              ate    1
+571              cut    1
+572        excluding    1
+573          expired    1
+574           landed    1
+575          leaving    1
+576            lived    1
+577          managed    1
+578          medical    1
+579        primarily    1
+580         recalled    1
+581        routinely    1
+582           safety    1
+583            slept    1
+584          special    1
+585           stayed    1
+586             they    1
+587 transforaminally    1
+588           walked    1</code></pre>
+</div>
+</div>
+</section>
+<section id="finding-top-words-per-specialty" class="level2">
+<h2 class="anchored" data-anchor-id="finding-top-words-per-specialty">Finding top words per specialty</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>mtsamplesrds <span class="sc">%&gt;%</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unnest_tokens</span>(token, V5) <span class="sc">%&gt;%</span></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">anti_join</span>(stop_words, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"token"</span> <span class="ot">=</span> <span class="st">"word"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">anti_join</span>(<span class="fu">data.frame</span>(<span class="at">token =</span> <span class="fu">as.character</span>(<span class="dv">0</span><span class="sc">:</span><span class="dv">9</span>)), <span class="at">by =</span> <span class="st">"token"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(V3) <span class="sc">%&gt;%</span></span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(token, <span class="at">sort =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">top_n</span>(<span class="dv">5</span>, n)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 211 × 3
+# Groups:   V3 [41]
+   V3                         token          n
+   &lt;chr&gt;                      &lt;chr&gt;      &lt;int&gt;
+ 1 Surgery                    patient     4855
+ 2 Surgery                    left        3263
+ 3 Surgery                    procedure   3243
+ 4 Consult - History and Phy. patient     3046
+ 5 Consult - History and Phy. history     2820
+ 6 Orthopedic                 patient     1711
+ 7 Surgery                    anesthesia  1687
+ 8 Surgery                    incision    1641
+ 9 Cardiovascular / Pulmonary left        1550
+10 Cardiovascular / Pulmonary patient     1516
+# ℹ 201 more rows</code></pre>
+</div>
+</div>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>

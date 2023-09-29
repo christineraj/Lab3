@@ -1,0 +1,112 @@
+---
+title: "Lab 6"
+author: "Christine Raj"
+format: html
+editor: visual
+---
+
+## Libraries
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(tidyverse)
+library(tidytext)
+```
+
+## Importing Data
+
+```{r}
+if (!file.exists("mtsamples.csv"))
+download.file(
+url = "https://raw.githubusercontent.com/USCbiostats/data-science-data/master/00_mtsamples/mtsamples.csv",
+destfile = "mtsamples.csv",
+method = "libcurl",
+timeout = 60
+)
+mtsamples <- data.table::fread("mtsamples.csv")
+
+saveRDS(mtsamples, file = "mtsamples.rds")
+mtsamplesrds <- readRDS("mtsamples.rds")
+
+```
+
+## Getting specialties
+
+```{r}
+# Use count() to get the count of each unique character in V3
+numberofspecialties <- mtsamples |>
+  count(V3)
+
+# Print the result
+print(numberofspecialties)
+```
+
+These categories are not evenly distributed and there is some overlap between categories.
+
+## Most frequent words
+
+```{r}
+mtsamplesrds %>%
+  unnest_tokens(token, V5) %>%
+  count(token, sort = TRUE) %>%
+  top_n(20, n)
+```
+
+This makes sense that the most common words are filler words and transition words. This does not show any insight into the data.
+
+## Most frequent words without stop words
+
+```{r}
+mtsamplesrds %>%
+  unnest_tokens(token, V5) %>%
+  count(token, sort = TRUE) %>%
+  anti_join(stop_words, by = c("token" = "word")) %>%
+  anti_join(data.frame(token = as.character(0:9)), by = "token")
+```
+
+There is a better idea of what the text is about because there is now more clear information that this is problem related to healthcare in some way. This shows the common words that may be used in a healthcare setting.
+
+## Using ngrams
+
+```{r}
+mtsamplesrds %>%
+  unnest_ngrams(bigram, V5, n = 2) %>%
+  count(bigram, sort = TRUE) %>%
+  top_n(20, n)
+
+mtsamplesrds %>%
+  unnest_ngrams(trigram, V5, n = 3) %>%
+  count(trigram, sort = TRUE) %>%
+  top_n(20, n)
+```
+
+## Counting words before and after patient
+
+```{r}
+mtsamplesrds %>%
+  unnest_ngrams(trigram, V5, n = 3) %>%
+  separate(trigram, into = c("word1", "word2", "word3"), sep = " ") %>%
+  select(word1, word2, word3) %>%
+  filter(word2 == "patient") %>%
+  count(word1, sort = TRUE) 
+
+mtsamplesrds %>%
+  unnest_ngrams(trigram, V5, n = 3) %>%
+  separate(trigram, into = c("word1", "word2", "word3"), sep = " ") %>%
+  select(word1, word2, word3) %>%
+  filter(word2 == "patient") %>%
+  count(word3, sort = TRUE) 
+```
+
+## Finding top words per specialty
+
+```{r}
+mtsamplesrds %>%
+  unnest_tokens(token, V5) %>%
+  anti_join(stop_words, by = c("token" = "word")) %>%
+  anti_join(data.frame(token = as.character(0:9)), by = "token") %>%
+  group_by(V3) %>%
+  count(token, sort = TRUE) %>%
+  top_n(5, n)
+```
