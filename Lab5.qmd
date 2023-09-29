@@ -1,0 +1,204 @@
+---
+title: "Lab 5"
+author: "Christine Raj"
+format:
+  html:
+    embed-resources: true
+editor: visual
+---
+
+## Uploading Packages
+
+```{r}
+library(tidyverse)
+library(data.table)
+library(dplyr)
+library(dtplyr)
+library(leaflet)
+library(readxl)
+```
+
+## Uploading Data
+
+```{r}
+if (!file.exists("met_all.gz"))
+  download.file(
+    url = "https://raw.githubusercontent.com/USCbiostats/data-science-data/master/02_met/met_all.gz",
+    destfile = "met_all.gz",
+    method   = "libcurl",
+    timeout  = 60
+    )
+met <- data.table::fread("met_all.gz")
+
+# Download the data
+stations <- fread("ftp://ftp.ncdc.noaa.gov/pub/data/noaa/isd-history.csv")
+stations[, USAF := as.integer(USAF)]
+
+# Dealing with NAs and 999999
+stations[, USAF   := fifelse(USAF == 999999, NA_integer_, USAF)]
+stations[, CTRY   := fifelse(CTRY == "", NA_character_, CTRY)]
+stations[, STATE  := fifelse(STATE == "", NA_character_, STATE)]
+
+# Selecting the three relevant columns, and keeping unique records
+stations <- unique(stations[, list(USAF, CTRY, STATE)])
+
+# Dropping NAs
+stations <- stations[!is.na(USAF)]
+
+# Removing duplicates
+stations[, n := 1:.N, by = .(USAF)]
+stations <- stations[n == 1,][, n := NULL]
+
+# merging data
+merge(
+  # Data
+  x     = met,      
+  y     = stations, 
+  # List of variables to match
+  by.x  = "USAFID",
+  by.y  = "USAF", 
+  # Which obs to keep?
+  all.x = TRUE,      
+  ) %>% nrow()
+
+met <- merge(
+  # Data
+  x     = met,      
+  y     = stations, 
+  # List of variables to match
+  by.x  = "USAFID",
+  by.y  = "USAF", 
+  # Which obs to keep?
+  all.x = TRUE,      
+  all.y = FALSE
+  )
+head(met[, list(USAFID, WBAN, STATE)], n = 4)
+```
+
+## Representative Stations
+
+```{r}
+quantile(met$temp, probs = seq(0, 1, 0.25), na.rm = TRUE, type = 1)
+q1 <- met |> filter(temp == 23.50) |> select(USAFID)
+print(q1)
+  #temp USAFID medians 690150, 720110
+
+quantile(met$wind.sp, probs = seq(0, 1, 0.25), na.rm = TRUE, type = 1)
+q2 <- met |> filter(wind.sp == 2.1) |> select(USAFID)
+print(q2)
+  #wind.sp USAFID medians 690150, 720110
+
+quantile(met$atm.press, probs = seq(0, 1, 0.25), na.rm = TRUE, type = 1)
+q3 <- met |> filter(atm.press == 1014.1) |> select(USAFID)
+print(q3)
+  #atm.press USAFID medians 690150, 720110
+```
+
+The sites that have the median wind speed, temperature, and atmospheric pressure were at stations 690150, 720175, 720198
+
+## Representative Station per State
+
+```{r}
+repstate <- filter(met, !is.na(temp),!is.na(USAFID),!is.na(STATE), !is.na(wind.sp), !is.na(atm.press), !is.na(lat), !is.na(lon))
+
+repstate <- mutate(repstate,
+                 euclid = (temp + wind.sp + atm.press) / 3 )
+euc <- repstate %>% 
+  group_by(STATE) %>% 
+  slice_min(order_by = euclid)
+  
+euc %>% 
+  group_by(STATE) %>% 
+  summarise(Count = n_distinct(USAFID))
+
+euc <- euc %>% 
+  group_by(STATE) %>% 
+  slice_min(order_by = lat)
+
+euc <- euc %>% distinct(USAFID, .keep_all = TRUE)
+
+euc %>% 
+  group_by(STATE, USAFID) %>% 
+  summarise(min(euclid))
+```
+
+The sites shown for these 46 states are the sites that represent the median site for each state.
+
+## Is the Station in the Middle of the State
+
+```{r}
+statemid = read_excel('midpoints.xlsx')
+
+names(statemid)[names(statemid)== "state"] <- "STATE"
+names(statemid)[names(statemid)== "latitude"] <- "latmid"
+names(statemid)[names(statemid)== "longitude"] <- "lonmid"
+
+states <- repstate %>% 
+  select(STATE, lat, lon, USAFID)
+
+middle <- merge(statemid, states, by = 'STATE')
+
+middle <- mutate(middle,
+       dist_mid = sqrt(((lat-latmid) * (lat - latmid)) + ((lon - lonmid) * (lon - lonmid)))) 
+
+nearest <- middle %>% 
+  group_by(STATE) %>% 
+  slice_min(order_by = dist_mid)
+
+nearest <- nearest %>% distinct(USAFID, .keep_all = TRUE)
+
+near.pal <- colorFactor(palette = 'turquoise',
+                   domain = nearest$USAFID)
+euc.pal <- colorFactor(palette = 'purple',
+                   domain = euc$USAFID)
+
+leaflet() %>% 
+  addProviderTiles('CartoDB.Positron') %>% 
+  addCircles(data = nearest, lat = ~lat, lng = ~lon, color = "turquoise",  opacity = 1, fillOpacity = 1, radius = 10) %>%
+  addCircles(data = euc, lat= ~lat, lng = ~lon, color = "purple",opacity = 1, fillOpacity = 1, radius = 10)
+```
+
+## Mean of Means
+
+```{r}
+averages <- group_by(repstate, STATE, temp)
+
+stateavg <- averages %>% group_by(STATE) %>% 
+  summarise(mean_temp = mean(temp),
+            .groups = 'drop')
+
+windavg <- averages %>% group_by(STATE) %>% 
+  summarise(mean_wind = mean(wind.sp),
+            .groups = 'drop')
+
+atmpressavg <- averages %>% group_by(STATE) %>% 
+  summarise(mean_atm = mean(atm.press),
+            .groups = 'drop')
+
+stateavg$temp_cat <- as.factor(ifelse(stateavg$mean_temp<20, 'low',
+                                ifelse(stateavg$mean_temp<25, 'mid', 'high')))
+stateavg
+windavg
+atmpressavg
+
+met %>% 
+  group_by(STATE) %>% 
+  summarise(Records = n_distinct(temp))
+
+met %>% 
+  group_by(STATE) %>% 
+  summarise(Records = sum(is.na(temp)))
+
+met %>% 
+  summarise(States = n_distinct(temp))
+
+met %>% 
+  group_by(STATE) %>% 
+  summarise(Records = n_distinct(USAFID))
+
+met %>% 
+  summarise(States = n_distinct(USAFID))
+
+met %>% 
+  summarise(States = n_distinct(STATE))
+```
