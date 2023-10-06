@@ -1,0 +1,251 @@
+---
+title: "HW2"
+author: "Christine Raj"
+format:
+  html:
+    embed-resources: true
+editor: visual
+---
+
+## Libraries
+
+```{r}
+library(ggplot2)
+library(tidyverse)
+library(tidytext)
+library(dplyr)
+library(leaflet)
+library(lubridate)
+library(ggpubr)
+```
+
+## Importing Data
+
+```{r}
+if (!file.exists("chs_individual.csv"))
+download.file(
+url = "https://raw.githubusercontent.com/USCbiostats/data-science-data/master/01_chs/chs_individual.csv",
+destfile = "chs_individual.csv",
+method = "libcurl",
+timeout = 60
+)
+individual <- data.table::fread("chs_individual.csv")
+
+
+if (!file.exists("chs_regional.csv"))
+download.file(
+url = "https://raw.githubusercontent.com/USCbiostats/data-science-data/master/01_chs/chs_regional.csv",
+destfile = "chs_regional.csv",
+method = "libcurl",
+timeout = 60
+)
+regional <- data.table::fread("chs_regional.csv")
+```
+
+## Merging Data
+
+```{r}
+merge(
+  # Data
+  x     = individual,      
+  y     = regional, 
+  # List of variables to match
+  by.x  = "townname",
+  by.y  = "townname", 
+  # Which obs to keep?
+  all.x = TRUE,      
+  ) %>% nrow()
+
+chs <- merge(
+  # Data
+  x     = individual,      
+  y     = regional, 
+  # List of variables to match
+  by.x  = "townname",
+  by.y  = "townname", 
+  # Which obs to keep?
+  all.x = TRUE,      
+  all.y = FALSE
+  )
+```
+
+## Cleaning up Data and Making New Variables
+
+```{r}
+chs <- chs %>%
+  group_by(male, hispanic) %>%
+  mutate(agepft = ifelse(is.na(agepft), mean(agepft, na.rm = TRUE), agepft)) %>%
+  mutate(height = ifelse(is.na(height), mean(height, na.rm = TRUE), height)) %>%
+  mutate(weight = ifelse(is.na(weight), mean(weight, na.rm = TRUE), weight)) %>%
+  mutate(bmi = ifelse(is.na(bmi), mean(bmi, na.rm = TRUE), bmi)) %>%
+  mutate(fev = ifelse(is.na(fev), mean(fev, na.rm = TRUE), fev)) %>%
+  mutate(fvc = ifelse(is.na(fvc), mean(fvc, na.rm = TRUE), fvc)) %>%
+  mutate(mmef = ifelse(is.na(mmef), mean(mmef, na.rm = TRUE), mmef)) %>%
+  mutate(no_24hr = ifelse(is.na(no_24hr), mean(no_24hr, na.rm = TRUE), no_24hr)) %>%
+  mutate(pm2_5_fr = ifelse(is.na(pm2_5_fr), mean(pm2_5_fr, na.rm = TRUE), pm2_5_fr))
+
+Mode <- function(x) {
+  ux <- unique(x)
+  ux[which.max(tabulate(match(x, ux)))]
+}
+
+chs <- chs %>%
+  group_by(male, hispanic) %>%
+  mutate(asthma = ifelse(is.na(asthma), Mode(asthma), asthma))  %>%
+  mutate(active_asthma = ifelse(is.na(active_asthma), Mode(active_asthma), active_asthma)) %>%
+  mutate(father_asthma = ifelse(is.na(father_asthma), Mode(father_asthma), father_asthma)) %>%
+   mutate(mother_asthma = ifelse(is.na(mother_asthma), Mode(mother_asthma), mother_asthma)) %>%
+  mutate(wheeze = ifelse(is.na(wheeze), Mode(wheeze), wheeze)) %>%
+  mutate(hayfever = ifelse(is.na(hayfever), Mode(hayfever), hayfever)) %>%
+  mutate(allergy = ifelse(is.na(allergy), Mode(allergy), allergy)) %>%
+  mutate(educ_parent = ifelse(is.na(educ_parent), Mode(educ_parent), educ_parent)) %>%
+  mutate(smoke = ifelse(is.na(smoke), Mode(smoke), smoke)) %>%
+  mutate(pets = ifelse(is.na(pets), Mode(pets), pets)) %>%
+  mutate(gasstove = ifelse(is.na(gasstove), Mode(gasstove), gasstove))
+
+table(is.na(chs))
+
+chs$obesity_level <- ifelse(chs$bmi < 14, "underweight",
+                           ifelse(chs$bmi < 22 & chs$bmi >= 14, "normal",
+                                  ifelse(chs$bmi >= 22 & chs$bmi < 24, "overweight",
+                                       ifelse(chs$bmi >= 24, "obese", NA))))
+summary_obesitylevel <- chs %>%
+  group_by(obesity_level) %>%
+  summarize(
+    min_BMI = min(bmi, na.rm = TRUE),
+    max_BMI = max(bmi, na.rm = TRUE),
+    total_observations = n()
+  )
+print(summary_obesitylevel)
+
+chs$smoke_gas_exposure <- ifelse(chs$smoke == 0 & chs$gasstove == 0, "no smoke exposure",
+                           ifelse(chs$smoke == 1 & chs$gasstove == 0, "Second hand smoke",
+                                 ifelse(chs$smoke == 0 & chs$gasstove == 1, "gas stove exposure",
+                                      ifelse(chs$smoke == 1 & chs$gasstove == 1, "both smoke and gasstove exposure", NA))))
+
+chs %>%
+  group_by(chs$smoke_gas_exposure) %>%
+  count(chs$smoke_gas_exposure)
+
+mean_town <- chs %>%
+  group_by(chs$townname) %>%
+  summarize(
+    meanFEV = mean(fev, na.rm = TRUE),
+    sdFEV = sd(fev, na.rm = TRUE))
+print(mean_town)
+
+FEV_sex <- chs %>%
+  group_by(male) %>%
+  summarize(
+    meanFEVsex = mean(fev),
+    sdFEVsex = sd(fev))
+print(FEV_sex)
+
+FEV_obesity_level <- chs %>%
+  group_by(obesity_level) %>%
+  summarize(
+    meanFEVobesity = mean(fev),
+    sdFEVobesity = sd(fev))
+print(FEV_obesity_level)
+
+FEV_smokegas <- chs %>%
+  group_by(smoke_gas_exposure) %>%
+  summarize(
+    meanFEVsomkegas = mean(fev),
+    sdFEVsmokegas = sd(fev))
+print(FEV_smokegas)
+```
+
+## Looking at the Data
+
+```{r}
+ggplot(chs, aes(x = bmi, y = fev, group = townname, color = townname)) +
+  geom_point (size = 1) +
+  labs(
+    title = "BMI vs. FEV by Town",
+    x = "bmi",
+    y = "fev"
+  ) + geom_smooth(method = "lm", se = FALSE)
+
+custom_colors <- c("turquoise", "coral", "purple", "pink")  
+custcolor2 <- c("aquamarine", "lightgreen", "forestgreen", "darkgreen")
+
+chs %>%
+  ggplot(aes(x = fev, fill = obesity_level, color = obesity_level)) +
+  geom_histogram(alpha = 0.5, position = "dodge") +
+  scale_fill_manual(values = custcolor2) + 
+  scale_color_manual(values = custcolor2)
+
+chs %>%
+  ggplot(aes(x = fev, fill = smoke_gas_exposure, color = smoke_gas_exposure)) +
+  geom_histogram(alpha = 0.5, position = "dodge") +
+  scale_fill_manual(values = custom_colors) + 
+  scale_color_manual(values = custom_colors)
+
+chs %>%
+  ggplot() + 
+  geom_bar(mapping = aes(x = chs$obesity_level, fill = smoke_gas_exposure), position = "dodge") + 
+  scale_fill_brewer(palette = 4) +
+  labs(title = "Obesity Level by Smoke and Gas Exposure") + 
+  labs(x = expression("Obesity Level"), y = "Number of Observations at each Obesity Level")
+
+chs %>%
+  ggplot() + 
+  geom_boxplot(mapping = aes(x = fev, fill = obesity_level), position = "dodge") + 
+  scale_fill_brewer(palette = 7) +
+  labs(title = "FEV by Obesity Level") + 
+  labs(x = expression("fev"))
+
+chs %>%
+  ggplot() + 
+  geom_boxplot(mapping = aes(x = fev, fill = smoke_gas_exposure), position = "dodge") + 
+  scale_fill_brewer(palette = 5) +
+  labs(title = "FEV by Smoke and Gas Exposure") + 
+  labs(x = expression("fev"))
+
+PM25.pal <- colorNumeric(c("aquamarine", "lightgreen", "forestgreen", "darkgreen"), domain=chs$pm25_mass)
+PM25.pal
+
+
+PM25map <- leaflet(chs) %>% 
+  # The looks of the Map
+  addProviderTiles('CartoDB.Positron') %>% 
+  # Some circles
+  addCircles(
+    lat = ~lat, lng=~lon,
+                                                  # HERE IS OUR PAL!
+    label = ~paste0(round(pm25_mass,2), ' C'), color = ~ PM25.pal(pm25_mass),
+    opacity = 1, fillOpacity = 1, radius = 500
+    ) %>%
+  #Add text
+  addLabelOnlyMarkers(
+    lat = ~lat, lng = ~lon, label = ~paste0(round(pm25_mass, 2), ' C'),
+    labelOptions = labelOptions(noHide = TRUE, direction = 'right')
+  ) %>%
+  # And a pretty legend
+  addLegend('bottomleft', pal=PM25.pal, values=chs$pm25_mass,
+          title='PM2.5 mass', opacity=1)
+PM25map
+
+
+ggplot(chs, aes(x = pm25_mass , y = fev, color = 'turquoise')) +
+  geom_point (size = 1) +
+  labs(
+    title = "PM 2.5 Mass vs. FEV",
+    x = "PM 2.5 Mass",
+    y = "FEV"
+  ) + geom_smooth(method = "lm", se = FALSE) +
+  stat_cor(method = "pearson", label.x = 0.85, label.y = 1)
+```
+
+1.  What is the association between BMI and FEV (forced expiratory volume)?
+
+    There is a positive association between BMI and FEV level as the lower the obesity level the lower the FEV. As obesity level goes up, the FEV also goes higher. There is less of a difference in FEV once a person is categorized as overweight or obese, but there is a significant difference between underweight and normal BMI's compared to overweight and obese.
+
+2.  What is the association between smoke and gas exposure and FEV?
+
+    There is no association between smoke and gas exposure and FEV because the medians and the quartile ranges are all fairly similar. There are a some more outliers in the categories that have either no smoke exposure or just gas stove exposure.
+
+3.  What is the association between PM2.5 exposure and FEV?
+
+    There is no association between PM2.5 exposure and FEV as the correlation analysis shows an R of -0.073. This means that the correlation is close to 0 and there is no association between PM2.5 and FEV.
