@@ -1,0 +1,104 @@
+---
+title: "HW3"
+author: "Christine Raj"
+format:
+  html:
+    embed-resources: true
+editor: visual
+---
+
+## Libraries
+
+```{r}
+library(ggplot2)
+library(tidyverse)
+library(tidytext)
+library(dplyr)
+library(readr)
+library(data.table)
+```
+
+## Importing Data
+
+```{r}
+pubmed <- read_csv("https://raw.githubusercontent.com/USCbiostats/data-science-data/master/03_pubmed/pubmed.csv")
+pubmed <- pubmed %>%
+  select(abstract, term)
+
+saveRDS(pubmed, file = "pubmed.rds")
+pubmedrds <- readRDS("pubmed.rds")
+head(pubmed)
+```
+
+## Counting Tokenized Words by Term with and without Stop Words
+
+```{r}
+pubmedrds %>%
+  unnest_tokens(token, term) %>%
+  count(token, sort = TRUE) %>%
+  top_n(20, n)
+
+pubmedgroup <- pubmedrds %>% group_by(term)
+
+abstractfreq <- pubmedgroup %>%
+  unnest_tokens(token, abstract) %>%
+  count(term, token, sort = TRUE)
+
+abstractfreq %>%
+  group_by(term) %>%
+  top_n(5, n)
+
+abstractfreqnostop <- pubmedgroup %>%
+  unnest_tokens(token, abstract) %>%
+  count(term, token, sort = TRUE) %>%
+  anti_join(stop_words, by = c("token" = "word")) %>%
+  anti_join(data.frame(token = as.character(0:9)), by = "token")
+
+abstractfreqnostop %>%
+  group_by(term) %>%
+  top_n(5, n)
+```
+
+When we tokenize the words by term without eliminating stop words the largest tokenized words are stop words. There is a lot of words such as the, of, and and that are in the top words used in multiple different search terms. Even with stop words included covid and 19 are extremely common in these abstracts. Once stop words are taken out the most common words are the actual term words that are used to search for the abstracts. Other common words are patients and the diseases that are being looked up.
+
+## Bigram Graph
+
+```{r}
+bigramgraph <- 
+  pubmedrds %>%
+  unnest_ngrams(bigram, abstract, n = 2) %>%
+  count(bigram, sort = TRUE) %>%
+  top_n(10, n)
+
+bigramgraph %>%
+  ggplot() + 
+  geom_bar(mapping = aes(x = reorder(bigram, n), y = n), stat = "identity") + 
+  labs(title = "Frequency of Bigrams in the Abstracts") + 
+  labs(x = expression("Bigrams"), y = "Number of Observations")
+```
+
+## TF-IDF
+
+```{r}
+allwords <- pubmedrds %>%
+  unnest_tokens(word, abstract)
+
+tf <- allwords %>%
+  group_by(term, word) %>%
+  count() %>%
+  ungroup()
+
+idf <- tf %>%
+  group_by(word) %>%
+  summarise(docfreq = n())
+
+tfidfdata <- tf %>%
+   left_join(idf, by = "word") %>%
+  mutate(tfidf = n * log2(n_distinct(term) / docfreq))
+
+tfidfdata %>%
+  group_by(term) %>%
+  top_n(5, tfidf)
+```
+
+The words with the highest TF-IDF values are somewhat similar to those seen in question 1. Still a lot of the words with the highest TF-IDF values are the disease that each term is looking at. One thing that is different from question 1 is that acronyms and shorthand form of words is more common than it had been in question 1. The 5 highest TF-IDF values for the search term covid is coronavirus, cov, covid, pandemic, and sars. The most common for the search term cystic fibrosis are cf, cftr, cystic, fibrosis, and sweat. The most common for the search term meningitis are csf, meninges, meningeal, meningitis, and pachymeningitis. The most common words for the search term preeclampsia are eclampsia, gestational, maternal, preeclampsia, and pregnancy. The most common words for the search term prostate cancer are prostate, androgen, psa, prostatectomy and castration.
