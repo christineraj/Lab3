@@ -1,0 +1,189 @@
+---
+title: "HW4"
+author: "Christine Raj"
+format:
+  html:
+    embed-resources: true
+editor: visual
+---
+
+## Libraries
+
+```{r}
+library(parallel)
+library(microbenchmark)
+library(matrixStats)
+library(RSQLite)
+library(DBI)
+```
+
+## Making Things Run Faster
+
+```{r}
+# Total row sums
+fun1 <- function(mat) {
+  n <- nrow(mat)
+  ans <- double(n) 
+  for (i in 1:n) {
+    ans[i] <- sum(mat[i, ])
+  }
+  ans
+}
+
+fun1alt <- function(mat) {
+  ans1 <- rowSums(mat)
+  ans1
+}
+
+# Cumulative sum by row
+fun2 <- function(mat) {
+  n <- nrow(mat)
+  k <- ncol(mat)
+  ans <- mat
+  for (i in 1:n) {
+    for (j in 2:k) {
+      ans[i,j] <- mat[i, j] + ans[i, j - 1]
+    }
+  }
+  ans
+  return(ans)
+}
+
+fun2alt <- function(mat) {
+  ans2 <- t(apply(mat, 1, cumsum))
+  ans2
+  return(ans2)
+  }
+```
+
+## Question 1
+
+```{r}
+# Use the data with this code
+set.seed(2315)
+dat <- matrix(rnorm(200 * 100), nrow = 200)
+
+result <- fun1(dat) == fun1alt(dat)
+print(result)
+result2 <- fun2(dat) == fun2alt(dat)
+print(result2)
+ 
+# Test for the first
+microbenchmark::microbenchmark(
+  fun1(dat),
+  fun1alt(dat), unit = "relative"
+)
+
+# Test for the second
+microbenchmark::microbenchmark(
+  fun2(dat),
+  fun2alt(dat), unit = "relative"
+)
+```
+
+## Set Up for Question 2
+
+```{r}
+sim_pi <- function(n = 1000, i = NULL) {
+  p <- matrix(runif(n*2), ncol = 2)
+  mean(rowSums(p^2) < 1) * 4
+}
+
+# Here is an example of the run
+set.seed(156)
+sim_pi(1000) # 3.132
+
+# This runs the simulation a 4,000 times, each with 10,000 points
+set.seed(1231)
+system.time({
+  ans <- unlist(lapply(1:4000, sim_pi, n = 10000))
+  print(mean(ans))
+})
+```
+
+## Question 2
+
+```{r}
+num_cores <- detectCores()
+
+# Set up a parallel cluster
+cl <- makeCluster(num_cores)
+
+# Export the sim_pi function to all cluster nodes
+clusterExport(cl, "sim_pi")
+
+system.time({
+  ans <- unlist(parLapply(cl, 1:4000, function(i) sim_pi(n = 10000)))
+  print(mean(ans))
+})
+stopCluster(cl)
+```
+
+## Set Up for SQL part
+
+```{r}
+# Initialize a temporary in memory database
+con <- dbConnect(SQLite(), ":memory:")
+
+# Download tables
+film <- read.csv("https://raw.githubusercontent.com/ivanceras/sakila/master/csv-sakila-db/film.csv")
+film_category <- read.csv("https://raw.githubusercontent.com/ivanceras/sakila/master/csv-sakila-db/film_category.csv")
+category <- read.csv("https://raw.githubusercontent.com/ivanceras/sakila/master/csv-sakila-db/category.csv")
+
+# Copy data.frames to database
+dbWriteTable(con, "film", film)
+dbWriteTable(con, "film_category", film_category)
+dbWriteTable(con, "category", category)
+```
+
+## Question 3
+
+```{sql connection=con}
+SELECT COUNT(), rating
+FROM film
+GROUP BY rating
+```
+
+## Question 4
+
+```{sql connection=con}
+SELECT AVG(rental_rate), AVG(replacement_cost), rating
+FROM film
+GROUP BY rating
+
+```
+
+## Question 5
+
+```{sql connection=con}
+SELECT
+    fc.category_id,
+    COUNT(f.film_id) AS film_count
+FROM
+    film_category fc
+JOIN
+    film f ON fc.film_id = f.film_id
+GROUP BY
+    fc.category_id;
+```
+
+## Question 6
+
+```{sql connection=con}
+SELECT
+    c.category_id,
+    c.name AS category_name,
+    COUNT(f.film_id) AS film_count
+FROM
+    film_category fc
+JOIN
+    film f ON fc.film_id = f.film_id
+JOIN
+    category c ON fc.category_id = c.category_id
+GROUP BY
+    c.category_id, c.name
+ORDER BY
+    film_count DESC;
+```
+
+## 
